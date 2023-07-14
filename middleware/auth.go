@@ -1,0 +1,21 @@
+package middleware
+
+import (
+	"github.com/gofiber/fiber/v2"
+
+	"salmanshahzad.com/web-go/utils"
+)
+
+func Auth() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user, err := utils.GetSession(c, true)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+		c.Locals("user", user)
+		return c.Next()
+	}
+}
