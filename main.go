@@ -17,9 +17,9 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"salmanshahzad.com/web-go/api"
-	"salmanshahzad.com/web-go/database"
-	"salmanshahzad.com/web-go/models"
+	"github.com/salmanshahzad/web-go/api"
+	"github.com/salmanshahzad/web-go/database"
+	"github.com/salmanshahzad/web-go/models"
 )
 
 func main() {

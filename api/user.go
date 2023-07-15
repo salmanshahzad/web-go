@@ -6,10 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"salmanshahzad.com/web-go/database"
-	"salmanshahzad.com/web-go/middleware"
-	"salmanshahzad.com/web-go/models"
-	"salmanshahzad.com/web-go/utils"
+	"github.com/salmanshahzad/web-go/database"
+	"github.com/salmanshahzad/web-go/middleware"
+	"github.com/salmanshahzad/web-go/models"
+	"github.com/salmanshahzad/web-go/utils"
 )
 
 func NewUserRouter() *fiber.App {

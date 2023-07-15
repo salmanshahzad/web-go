@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"salmanshahzad.com/web-go/utils"
+	"github.com/salmanshahzad/web-go/utils"
 )
 
 func Auth() fiber.Handler {

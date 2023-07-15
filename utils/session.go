@@ -9,8 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"salmanshahzad.com/web-go/database"
-	"salmanshahzad.com/web-go/models"
+	"github.com/salmanshahzad/web-go/database"
+	"github.com/salmanshahzad/web-go/models"
 )
 
 const cookieName = "sessionId"

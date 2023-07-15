@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"salmanshahzad.com/web-go/database"
-	"salmanshahzad.com/web-go/models"
-	"salmanshahzad.com/web-go/utils"
+	"github.com/salmanshahzad/web-go/database"
+	"github.com/salmanshahzad/web-go/models"
+	"github.com/salmanshahzad/web-go/utils"
 )
 
 func NewSessionRouter() *fiber.App {

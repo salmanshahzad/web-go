@@ -1,4 +1,4 @@
-module salmanshahzad.com/web-go
+module github.com/salmanshahzad/web-go
 
 go 1.20
 
