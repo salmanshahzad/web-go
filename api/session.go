@@ -1,14 +1,13 @@
 package api
 
 import (
+	"database/sql"
 	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 
 	"github.com/salmanshahzad/web-go/database"
-	"github.com/salmanshahzad/web-go/models"
 	"github.com/salmanshahzad/web-go/utils"
 )
 
@@ -36,9 +35,9 @@ func handleSignIn(c *fiber.Ctx) error {
 		return utils.ClientError(c, "Username and password are required")
 	}
 
-	user := new(models.User)
-	if err := database.Db.First(user, "username = ?", payload.Username).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	user, err := database.Db.GetUserByUsername(database.Ctx, payload.Username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": "Incorrect username or password",
 			})
@@ -46,7 +45,7 @@ func handleSignIn(c *fiber.Ctx) error {
 		return err
 	}
 
-	validPassword, err := user.VerifyPassword(payload.Password)
+	validPassword, err := utils.VerifyPassword(payload.Password, user.Password)
 	if err != nil {
 		return err
 	}

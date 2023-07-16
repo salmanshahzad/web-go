@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -13,13 +14,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	"github.com/salmanshahzad/web-go/api"
 	"github.com/salmanshahzad/web-go/database"
-	"github.com/salmanshahzad/web-go/models"
 )
 
 func main() {
@@ -43,21 +43,24 @@ func loadEnvVars() {
 	log.Println("Loaded environment variables from .env")
 }
 
-func connectToPostgres() *gorm.DB {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+func connectToPostgres() *database.Queries {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)
 	}
 	log.Println("Connected to database")
 
-	if err := db.AutoMigrate(&models.User{}); err != nil {
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatalln("Error setting goose dialect:", err)
+	}
+	if err := goose.Up(db, "database/migrations"); err != nil {
 		log.Fatalln("Error performing database migrations:", err)
 	}
 	log.Println("Completed database migrations")
 
-	return db
+	return database.New(db)
 }
 
 func connectToRedis() *redis.Client {

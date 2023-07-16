@@ -8,7 +8,6 @@ import (
 
 	"github.com/salmanshahzad/web-go/database"
 	"github.com/salmanshahzad/web-go/middleware"
-	"github.com/salmanshahzad/web-go/models"
 	"github.com/salmanshahzad/web-go/utils"
 )
 
@@ -24,7 +23,7 @@ func NewUserRouter() *fiber.App {
 }
 
 func handleGetUser(c *fiber.Ctx) error {
-	user := c.Locals("user").(*models.User)
+	user := c.Locals("user").(*database.User)
 	return c.JSON(fiber.Map{
 		"id":       user.ID,
 		"username": user.Username,
@@ -48,26 +47,29 @@ func handleCreateUser(c *fiber.Ctx) error {
 		return utils.ClientError(c, "Username and password are required")
 	}
 
-	var userCount int64
-	if err := database.Db.Model(&models.User{}).Where("username = ?", payload.Username).Count(&userCount).Error; err != nil {
+	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
+	if err != nil {
 		return err
 	}
 	if userCount > 0 {
 		return utils.ClientError(c, "Username already exists")
 	}
 
-	user := models.User{
-		Username: payload.Username,
-		Password: payload.Password,
-	}
-	if err := user.HashPassword(); err != nil {
-		return err
-	}
-	if err := database.Db.Create(&user).Error; err != nil {
+	hashedPassword, err := utils.HashPassword(payload.Password)
+	if err != nil {
 		return err
 	}
 
-	if err := utils.CreateSession(c, user.ID); err != nil {
+	user := database.CreateUserParams{
+		Username: payload.Username,
+		Password: hashedPassword,
+	}
+	userId, err := database.Db.CreateUser(database.Ctx, user)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.CreateSession(c, userId); err != nil {
 		return err
 	}
 	log.Println("Created user", payload.Username)
@@ -88,17 +90,20 @@ func handleEditUsername(c *fiber.Ctx) error {
 		return utils.ClientError(c, "Username is required")
 	}
 
-	var userCount int64
-	if err := database.Db.Model(&models.User{}).Where("username = ?", payload.Username).Count(&userCount).Error; err != nil {
+	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
+	if err != nil {
 		return err
 	}
 	if userCount > 0 {
 		return utils.ClientError(c, "Username already exists")
 	}
 
-	user := c.Locals("user").(*models.User)
-	user.Username = payload.Username
-	if err := database.Db.Save(user).Error; err != nil {
+	user := c.Locals("user").(*database.User)
+	params := database.UpdateUsernameParams{
+		ID:       user.ID,
+		Username: payload.Username,
+	}
+	if err := database.Db.UpdateUsername(database.Ctx, params); err != nil {
 		return err
 	}
 
@@ -119,12 +124,17 @@ func handleEditPassword(c *fiber.Ctx) error {
 		return utils.ClientError(c, "Password is required")
 	}
 
-	user := c.Locals("user").(*models.User)
-	user.Password = payload.Password
-	if err := user.HashPassword(); err != nil {
+	hashedPassword, err := utils.HashPassword(payload.Password)
+	if err != nil {
 		return err
 	}
-	if err := database.Db.Save(user).Error; err != nil {
+
+	user := c.Locals("user").(*database.User)
+	params := database.UpdatePasswordParams{
+		ID:       user.ID,
+		Password: hashedPassword,
+	}
+	if err := database.Db.UpdatePassword(database.Ctx, params); err != nil {
 		return err
 	}
 
@@ -135,8 +145,8 @@ func handleDeleteUser(c *fiber.Ctx) error {
 	if err := utils.DeleteSession(c); err != nil {
 		return err
 	}
-	user := c.Locals("user").(*models.User)
-	if err := database.Db.Delete(user).Error; err != nil {
+	user := c.Locals("user").(*database.User)
+	if err := database.Db.DeleteUser(database.Ctx, user.ID); err != nil {
 		return err
 	}
 
