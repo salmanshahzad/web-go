@@ -11,6 +11,8 @@ require (
 	github.com/redis/go-redis/v9 v9.0.5
 )
 
+require github.com/sethvargo/go-envconfig v0.9.0
+
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect

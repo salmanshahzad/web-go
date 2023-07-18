@@ -13,13 +13,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/salmanshahzad/web-go/api"
 	"github.com/salmanshahzad/web-go/database"
+	"github.com/salmanshahzad/web-go/utils"
 )
 
 func main() {
@@ -30,21 +30,21 @@ func main() {
 	app := bootstrapApp()
 	setupGracefulShutdown()
 
-	addr := fmt.Sprintf("0.0.0.0:%s", os.Getenv("PORT"))
+	addr := fmt.Sprintf("0.0.0.0:%d", utils.Env.Port)
 	if err := app.Listen(addr); err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
 }
 
 func loadEnvVars() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalln("Could not load environment variables from .env:", err)
+	if err := utils.InitEnv(); err != nil {
+		log.Fatalln("Could not load environment variables:", err)
 	}
-	log.Println("Loaded environment variables from .env")
+	log.Println("Loaded environment variables")
 }
 
 func connectToPostgres() *database.Queries {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", utils.Env.DbHost, utils.Env.DbPort, utils.Env.DbUser, utils.Env.DbPassword, utils.Env.DbName)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -65,8 +65,8 @@ func connectToPostgres() *database.Queries {
 
 func connectToRedis() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
-		Password: os.Getenv("REDIS_PASSWORD"),
+		Addr:     fmt.Sprintf("%s:%d", utils.Env.RedisHost, utils.Env.RedisPort),
+		Password: utils.Env.RedisPassword,
 	})
 	log.Println("Connected to Redis")
 
