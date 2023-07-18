@@ -84,6 +84,7 @@ func bootstrapApp() *fiber.App {
 	})
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
+		AllowOrigins:     utils.Env.CorsOrigins,
 	}))
 	app.Mount("/api", apiRouter)
 	app.Use(filesystem.New(filesystem.Config{

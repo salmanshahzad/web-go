@@ -8,6 +8,7 @@ import (
 )
 
 type Environment struct {
+	CorsOrigins   string `env:"CORS_ORIGINS,default=*"`
 	DbHost        string `env:"DB_HOST,required"`
 	DbName        string `env:"DB_NAME,required"`
 	DbPassword    string `env:"DB_PASSWORD,required"`
