@@ -44,7 +44,7 @@ func handleCreateUser(c *fiber.Ctx) error {
 	payload.Password = strings.TrimSpace(payload.Password)
 
 	if len(payload.Username) == 0 || len(payload.Password) == 0 {
-		return utils.ClientError(c, "Username and password are required")
+		return utils.UnprocessableEntity(c, "Username and password are required")
 	}
 
 	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
@@ -52,7 +52,7 @@ func handleCreateUser(c *fiber.Ctx) error {
 		return err
 	}
 	if userCount > 0 {
-		return utils.ClientError(c, "Username already exists")
+		return utils.UnprocessableEntity(c, "Username already exists")
 	}
 
 	hashedPassword, err := utils.HashPassword(payload.Password)
@@ -87,7 +87,7 @@ func handleEditUsername(c *fiber.Ctx) error {
 
 	payload.Username = strings.TrimSpace(payload.Username)
 	if len(payload.Username) == 0 {
-		return utils.ClientError(c, "Username is required")
+		return utils.UnprocessableEntity(c, "Username is required")
 	}
 
 	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
@@ -95,7 +95,7 @@ func handleEditUsername(c *fiber.Ctx) error {
 		return err
 	}
 	if userCount > 0 {
-		return utils.ClientError(c, "Username already exists")
+		return utils.UnprocessableEntity(c, "Username already exists")
 	}
 
 	user := c.Locals("user").(*database.User)
@@ -121,7 +121,7 @@ func handleEditPassword(c *fiber.Ctx) error {
 
 	payload.Password = strings.TrimSpace(payload.Password)
 	if len(payload.Password) == 0 {
-		return utils.ClientError(c, "Password is required")
+		return utils.UnprocessableEntity(c, "Password is required")
 	}
 
 	hashedPassword, err := utils.HashPassword(payload.Password)

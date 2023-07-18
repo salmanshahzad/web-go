@@ -32,15 +32,13 @@ func handleSignIn(c *fiber.Ctx) error {
 	payload.Password = strings.TrimSpace(payload.Password)
 
 	if len(payload.Username) == 0 || len(payload.Password) == 0 {
-		return utils.ClientError(c, "Username and password are required")
+		return utils.UnprocessableEntity(c, "Username and password are required")
 	}
 
 	user, err := database.Db.GetUserByUsername(database.Ctx, payload.Username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "Incorrect username or password",
-			})
+			return utils.Unauthorized(c, "Incorrect username or password")
 		}
 		return err
 	}
@@ -50,9 +48,7 @@ func handleSignIn(c *fiber.Ctx) error {
 		return err
 	}
 	if !validPassword {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Incorrect username or password",
-		})
+		return utils.Unauthorized(c, "Incorrect username or password")
 	}
 
 	if err := utils.CreateSession(c, user.ID); err != nil {
