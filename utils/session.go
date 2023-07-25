@@ -21,7 +21,7 @@ func CreateSession(c *fiber.Ctx, userId int32) error {
 }
 
 func DeleteSession(c *fiber.Ctx) error {
-	if _, err := database.Rdb.Del(database.Ctx, c.Cookies(cookieName)).Result(); err != nil {
+	if _, err := database.Rdb.Del(c.Context(), c.Cookies(cookieName)).Result(); err != nil {
 		return err
 	}
 	c.Cookie(&fiber.Cookie{
@@ -38,7 +38,7 @@ func GetSession(c *fiber.Ctx, resave bool) (*database.User, error) {
 		return nil, nil
 	}
 
-	userId, err := database.Rdb.Get(database.Ctx, sid).Result()
+	userId, err := database.Rdb.Get(c.Context(), sid).Result()
 	if err == redis.Nil {
 		return nil, nil
 	}
@@ -51,7 +51,7 @@ func GetSession(c *fiber.Ctx, resave bool) (*database.User, error) {
 		return nil, err
 	}
 
-	user, err := database.Db.GetUser(database.Ctx, int32(uid))
+	user, err := database.Db.GetUser(c.Context(), int32(uid))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -70,7 +70,7 @@ func GetSession(c *fiber.Ctx, resave bool) (*database.User, error) {
 
 func createSession(c *fiber.Ctx, sid string, userId int32) error {
 	expiration := time.Until(time.Now().Add(7 * 24 * time.Hour))
-	if _, err := database.Rdb.SetEx(database.Ctx, sid, userId, expiration).Result(); err != nil {
+	if _, err := database.Rdb.SetEx(c.Context(), sid, userId, expiration).Result(); err != nil {
 		return err
 	}
 	c.Cookie(&fiber.Cookie{

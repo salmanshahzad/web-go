@@ -47,7 +47,7 @@ func handleCreateUser(c *fiber.Ctx) error {
 		return utils.UnprocessableEntity(c, "Username and password are required")
 	}
 
-	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
+	userCount, err := database.Db.CountUsersWithUsername(c.Context(), payload.Username)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func handleCreateUser(c *fiber.Ctx) error {
 		Username: payload.Username,
 		Password: hashedPassword,
 	}
-	userId, err := database.Db.CreateUser(database.Ctx, user)
+	userId, err := database.Db.CreateUser(c.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func handleEditUsername(c *fiber.Ctx) error {
 		return utils.UnprocessableEntity(c, "Username is required")
 	}
 
-	userCount, err := database.Db.CountUsersWithUsername(database.Ctx, payload.Username)
+	userCount, err := database.Db.CountUsersWithUsername(c.Context(), payload.Username)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func handleEditUsername(c *fiber.Ctx) error {
 		ID:       user.ID,
 		Username: payload.Username,
 	}
-	if err := database.Db.UpdateUsername(database.Ctx, params); err != nil {
+	if err := database.Db.UpdateUsername(c.Context(), params); err != nil {
 		return err
 	}
 
@@ -134,7 +134,7 @@ func handleEditPassword(c *fiber.Ctx) error {
 		ID:       user.ID,
 		Password: hashedPassword,
 	}
-	if err := database.Db.UpdatePassword(database.Ctx, params); err != nil {
+	if err := database.Db.UpdatePassword(c.Context(), params); err != nil {
 		return err
 	}
 
@@ -146,7 +146,7 @@ func handleDeleteUser(c *fiber.Ctx) error {
 		return err
 	}
 	user := c.Locals("user").(*database.User)
-	if err := database.Db.DeleteUser(database.Ctx, user.ID); err != nil {
+	if err := database.Db.DeleteUser(c.Context(), user.ID); err != nil {
 		return err
 	}
 

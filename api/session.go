@@ -35,7 +35,7 @@ func handleSignIn(c *fiber.Ctx) error {
 		return utils.UnprocessableEntity(c, "Username and password are required")
 	}
 
-	user, err := database.Db.GetUserByUsername(database.Ctx, payload.Username)
+	user, err := database.Db.GetUserByUsername(c.Context(), payload.Username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return utils.Unauthorized(c, "Incorrect username or password")
