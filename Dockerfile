@@ -1,5 +1,5 @@
-FROM golang:1.20.5
+FROM golang:1.20.7
 WORKDIR /usr/src/app
 COPY . .
-RUN make build
-CMD ["make", "run"]
+RUN go build -o bin/web-go .
+CMD ["./bin/web-go"]

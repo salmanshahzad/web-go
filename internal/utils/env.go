@@ -20,17 +20,16 @@ type Environment struct {
 	RedisPort     int    `env:"REDIS_PORT,default=6379"`
 }
 
-var Env Environment
-
-func InitEnv() error {
+func InitEnv() (*Environment, error) {
 	if err := godotenv.Load(); err != nil {
-		return err
+		return nil, err
 	}
 
 	ctx := context.Background()
-	if err := envconfig.Process(ctx, &Env); err != nil {
-		return err
+	env := new(Environment)
+	if err := envconfig.Process(ctx, env); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return env, nil
 }
