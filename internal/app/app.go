@@ -1,6 +1,7 @@
 package app
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 	"strings"
@@ -18,15 +19,17 @@ import (
 type Application struct {
 	db     *database.Queries
 	env    *utils.Environment
+	public *fs.FS
 	rdb    *redis.Client
 	router *chi.Mux
 	sm     *scs.SessionManager
 }
 
-func NewApplication(db *database.Queries, env *utils.Environment, rdb *redis.Client, sm *scs.SessionManager) *Application {
+func NewApplication(db *database.Queries, env *utils.Environment, public *fs.FS, rdb *redis.Client, sm *scs.SessionManager) *Application {
 	app := Application{
 		db:     db,
 		env:    env,
+		public: public,
 		rdb:    rdb,
 		router: chi.NewRouter(),
 		sm:     sm,
@@ -48,8 +51,8 @@ func NewApplication(db *database.Queries, env *utils.Environment, rdb *redis.Cli
 	app.router.Use(sm.LoadAndSave)
 	app.router.Mount("/api", apiRouter)
 
-	fs := http.FileServer(http.Dir("public"))
-	app.router.Get("/*", fs.ServeHTTP)
+	publicFs := http.FileServer(http.FS(*public))
+	app.router.Get("/*", publicFs.ServeHTTP)
 
 	return &app
 }

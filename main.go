@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -22,16 +24,20 @@ import (
 	"github.com/salmanshahzad/web-go/internal/utils"
 )
 
+//go:embed public
+var public embed.FS
+
 func main() {
 	env := loadEnvVars()
 	db := connectToPostgres(env)
 	rdb := connectToRedis(env)
+	pub := getPublicFs()
 
 	sm := scs.New()
 	sm.Lifetime = 7 * 24 * time.Hour
 	sm.Store = goredisstore.New(rdb)
 
-	app := app.NewApplication(db, env, rdb, sm)
+	app := app.NewApplication(db, env, pub, rdb, sm)
 	setupGracefulShutdown(app)
 
 	log.Printf("Server starting on port %d", env.Port)
@@ -78,6 +84,14 @@ func connectToRedis(env *utils.Environment) *redis.Client {
 	log.Println("Connected to Redis")
 
 	return rdb
+}
+
+func getPublicFs() *fs.FS {
+	pub, err := fs.Sub(public, "public")
+	if err != nil {
+		log.Fatalln("Could not find public directory:", err)
+	}
+	return &pub
 }
 
 func setupGracefulShutdown(app *app.Application) {
