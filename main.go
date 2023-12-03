@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -23,6 +24,9 @@ import (
 	"github.com/salmanshahzad/web-go/internal/database"
 	"github.com/salmanshahzad/web-go/internal/utils"
 )
+
+//go:embed internal/database/migrations
+var migrations embed.FS
 
 //go:embed public
 var public embed.FS
@@ -68,7 +72,8 @@ func connectToPostgres(env *utils.Environment) *database.Queries {
 	if err := goose.SetDialect("postgres"); err != nil {
 		log.Fatalln("Error setting goose dialect:", err)
 	}
-	if err := goose.Up(db, "internal/database/migrations"); err != nil {
+	goose.SetBaseFS(migrations)
+	if err := goose.Up(db, "internal/database/migrations"); err != nil && !errors.Is(err, goose.ErrNoMigrationFiles) {
 		log.Fatalln("Error performing database migrations:", err)
 	}
 	log.Println("Completed database migrations")
