@@ -62,7 +62,7 @@ func loadEnvVars() *utils.Environment {
 	return env
 }
 
-func connectToPostgres(env *utils.Environment) *database.Queries {
+func connectToPostgres(env *utils.Environment) database.Querier {
 	conn, err := pgx.Connect(context.Background(), env.DatabaseUrl)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)

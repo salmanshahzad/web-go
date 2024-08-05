@@ -17,7 +17,7 @@ import (
 )
 
 type Application struct {
-	db     *database.Queries
+	db     database.Querier
 	env    *utils.Environment
 	public *fs.FS
 	rdb    *redis.Client
@@ -25,7 +25,7 @@ type Application struct {
 	sm     *scs.SessionManager
 }
 
-func NewApplication(db *database.Queries, env *utils.Environment, public *fs.FS, rdb *redis.Client, sm *scs.SessionManager) *Application {
+func NewApplication(db database.Querier, env *utils.Environment, public *fs.FS, rdb *redis.Client, sm *scs.SessionManager) *Application {
 	app := Application{
 		db:     db,
 		env:    env,
