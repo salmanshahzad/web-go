@@ -4,7 +4,6 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
@@ -45,7 +44,7 @@ func NewApplication(db database.Querier, cfg *utils.Config, public *fs.FS, rdb *
 	app.router.Use(middleware.Recoverer)
 	app.router.Use(cors.New(cors.Options{
 		AllowCredentials: true,
-		AllowedOrigins:   strings.Split(cfg.CorsOrigins, ","),
+		AllowedOrigins:   cfg.CorsOrigins,
 	}).Handler)
 	app.router.Use(middleware.GetHead)
 	app.router.Use(sm.LoadAndSave)

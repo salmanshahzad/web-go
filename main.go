@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/alexedwards/scs/goredisstore"
 	"github.com/alexedwards/scs/v2"
@@ -41,7 +40,7 @@ func main() {
 	pub := getPublicFs()
 
 	sm := scs.New()
-	sm.Lifetime = 7 * 24 * time.Hour
+	sm.Lifetime = cfg.SessionLifetime
 	sm.Store = goredisstore.New(rdb)
 
 	app := app.NewApplication(db, cfg, pub, rdb, sm)

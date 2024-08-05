@@ -2,16 +2,18 @@ package utils
 
 import (
 	"context"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )
 
 type Config struct {
-	CorsOrigins string `env:"CORS_ORIGINS,default=*"`
-	DatabaseUrl string `env:"DATABASE_URL,required"`
-	Port        int    `env:"PORT,default=1024"`
-	RedisUrl    string `env:"REDIS_URL,required"`
+	CorsOrigins     []string      `env:"CORS_ORIGINS,default=*"`
+	DatabaseUrl     string        `env:"DATABASE_URL,required"`
+	Port            int           `env:"PORT,default=1024"`
+	RedisUrl        string        `env:"REDIS_URL,required"`
+	SessionLifetime time.Duration `env:"SESSION_LIFETIME,default=168h"`
 }
 
 func LoadConfig(ctx context.Context) (*Config, error) {
