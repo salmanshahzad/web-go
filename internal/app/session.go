@@ -26,7 +26,7 @@ func (app *Application) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	payload := new(Payload)
 	if err := render.DecodeJSON(r.Body, payload); err != nil {
-		utils.InternalServerError(w, r, err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

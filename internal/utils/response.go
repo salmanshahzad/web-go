@@ -24,15 +24,15 @@ func ValidationError(w http.ResponseWriter, r *http.Request, val *valgo.Validati
 	for k, v := range val.Errors() {
 		errors[k] = v.Messages()
 	}
-	w.WriteHeader(http.StatusUnprocessableEntity)
 	render.JSON(w, r, map[string]map[string][]string{
 		"errors": errors,
 	})
+	w.WriteHeader(http.StatusUnprocessableEntity)
 }
 
 func sendMessage(w http.ResponseWriter, r *http.Request, code int, msg string) {
-	w.WriteHeader(code)
 	render.JSON(w, r, map[string]string{
 		"message": msg,
 	})
+	w.WriteHeader(code)
 }

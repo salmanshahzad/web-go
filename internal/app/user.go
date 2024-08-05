@@ -88,7 +88,7 @@ func (app *Application) handleEditUsername(w http.ResponseWriter, r *http.Reques
 	}
 	payload := new(Payload)
 	if err := render.DecodeJSON(r.Body, payload); err != nil {
-		utils.InternalServerError(w, r, err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (app *Application) handleEditPassword(w http.ResponseWriter, r *http.Reques
 	}
 	payload := new(Payload)
 	if err := render.DecodeJSON(r.Body, payload); err != nil {
-		utils.InternalServerError(w, r, err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
