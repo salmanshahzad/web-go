@@ -84,10 +84,14 @@ func connectToPostgres(env *utils.Environment) *database.Queries {
 }
 
 func connectToRedis(env *utils.Environment) *redis.Client {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     net.JoinHostPort(env.RedisHost, fmt.Sprint(env.RedisPort)),
-		Password: env.RedisPassword,
-	})
+	opts, err := redis.ParseURL(env.RedisUrl)
+	if err != nil {
+		log.Fatalln("Error parsing Redis URL:", err)
+	}
+	rdb := redis.NewClient(opts)
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalln("Error connecting to Redis:", err)
+	}
 	log.Println("Connected to Redis")
 
 	return rdb

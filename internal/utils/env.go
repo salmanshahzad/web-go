@@ -8,12 +8,10 @@ import (
 )
 
 type Environment struct {
-	CorsOrigins   string `env:"CORS_ORIGINS,default=*"`
-	DatabaseUrl   string `env:"DATABASE_URL,required"`
-	Port          int    `env:"PORT,default=1024"`
-	RedisHost     string `env:"REDIS_HOST,required"`
-	RedisPassword string `env:"REDIS_PASSWORD,required"`
-	RedisPort     int    `env:"REDIS_PORT,default=6379"`
+	CorsOrigins string `env:"CORS_ORIGINS,default=*"`
+	DatabaseUrl string `env:"DATABASE_URL,required"`
+	Port        int    `env:"PORT,default=1024"`
+	RedisUrl    string `env:"REDIS_URL,required"`
 }
 
 func InitEnv() (*Environment, error) {
