@@ -14,7 +14,6 @@ import (
 	"syscall"
 
 	"github.com/alexedwards/scs/goredisstore"
-	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/lib/pq"
@@ -39,12 +38,9 @@ func main() {
 	db := database.New(dbConn)
 	rdb := connectToRedis(ctx, cfg)
 	pub := getPublicFs()
+	sessStore := goredisstore.New(rdb)
 
-	sm := scs.New()
-	sm.Lifetime = cfg.SessionLifetime
-	sm.Store = goredisstore.New(rdb)
-
-	app := app.NewApplication(db, cfg, pub, rdb, sm)
+	app := app.NewApplication(cfg, db, rdb, pub, sessStore)
 	go func() {
 		log.Printf("Server starting on port %d", cfg.Port)
 		addr := net.JoinHostPort(net.IPv4zero.String(), strconv.Itoa(cfg.Port))
@@ -111,10 +107,10 @@ func connectToRedis(ctx context.Context, cfg *utils.Config) *redis.Client {
 	return rdb
 }
 
-func getPublicFs() *fs.FS {
+func getPublicFs() fs.FS {
 	pub, err := fs.Sub(public, "public")
 	if err != nil {
 		log.Fatalln("Could not find public directory:", err)
 	}
-	return &pub
+	return pub
 }
