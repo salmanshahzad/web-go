@@ -14,12 +14,11 @@ type Config struct {
 	RedisUrl    string `env:"REDIS_URL,required"`
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig(ctx context.Context) (*Config, error) {
 	if err := godotenv.Load(); err != nil {
 		return nil, err
 	}
 
-	ctx := context.Background()
 	env := new(Config)
 	if err := envconfig.Process(ctx, env); err != nil {
 		return nil, err

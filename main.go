@@ -34,9 +34,10 @@ var migrations embed.FS
 var public embed.FS
 
 func main() {
-	cfg := loadConfig()
-	db := connectToPostgres(cfg)
-	rdb := connectToRedis(cfg)
+	ctx := context.Background()
+	cfg := loadConfig(ctx)
+	db := connectToPostgres(ctx, cfg)
+	rdb := connectToRedis(ctx, cfg)
 	pub := getPublicFs()
 
 	sm := scs.New()
@@ -53,8 +54,8 @@ func main() {
 	}
 }
 
-func loadConfig() *utils.Config {
-	cfg, err := utils.LoadConfig()
+func loadConfig(ctx context.Context) *utils.Config {
+	cfg, err := utils.LoadConfig(ctx)
 	if err != nil {
 		log.Fatalln("Could not load config:", err)
 	}
@@ -62,8 +63,8 @@ func loadConfig() *utils.Config {
 	return cfg
 }
 
-func connectToPostgres(cfg *utils.Config) database.Querier {
-	conn, err := pgx.Connect(context.Background(), cfg.DatabaseUrl)
+func connectToPostgres(ctx context.Context, cfg *utils.Config) database.Querier {
+	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)
 	}
@@ -83,13 +84,13 @@ func connectToPostgres(cfg *utils.Config) database.Querier {
 	return database.New(conn)
 }
 
-func connectToRedis(cfg *utils.Config) *redis.Client {
+func connectToRedis(ctx context.Context, cfg *utils.Config) *redis.Client {
 	opts, err := redis.ParseURL(cfg.RedisUrl)
 	if err != nil {
 		log.Fatalln("Error parsing Redis URL:", err)
 	}
 	rdb := redis.NewClient(opts)
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
+	if err := rdb.Ping(ctx).Err(); err != nil {
 		log.Fatalln("Error connecting to Redis:", err)
 	}
 	log.Println("Connected to Redis")
