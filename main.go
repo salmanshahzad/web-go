@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -16,6 +16,8 @@ import (
 
 	"github.com/alexedwards/scs/goredisstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"github.com/redis/go-redis/v9"
@@ -61,9 +63,7 @@ func loadEnvVars() *utils.Environment {
 }
 
 func connectToPostgres(env *utils.Environment) *database.Queries {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", env.DbHost, env.DbPort, env.DbUser, env.DbPassword, env.DbName)
-
-	db, err := sql.Open("postgres", dsn)
+	conn, err := pgx.Connect(context.Background(), env.DatabaseUrl)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)
 	}
@@ -73,12 +73,14 @@ func connectToPostgres(env *utils.Environment) *database.Queries {
 		log.Fatalln("Error setting goose dialect:", err)
 	}
 	goose.SetBaseFS(migrations)
+	db := stdlib.OpenDB(*conn.Config())
+	defer db.Close()
 	if err := goose.Up(db, "internal/database/migrations"); err != nil && !errors.Is(err, goose.ErrNoMigrationFiles) {
 		log.Fatalln("Error performing database migrations:", err)
 	}
 	log.Println("Completed database migrations")
 
-	return database.New(db)
+	return database.New(conn)
 }
 
 func connectToRedis(env *utils.Environment) *redis.Client {

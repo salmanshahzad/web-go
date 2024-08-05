@@ -9,11 +9,7 @@ import (
 
 type Environment struct {
 	CorsOrigins   string `env:"CORS_ORIGINS,default=*"`
-	DbHost        string `env:"DB_HOST,required"`
-	DbName        string `env:"DB_NAME,required"`
-	DbPassword    string `env:"DB_PASSWORD,required"`
-	DbPort        int    `env:"DB_PORT,default=5432"`
-	DbUser        string `env:"DB_USER,required"`
+	DatabaseUrl   string `env:"DATABASE_URL,required"`
 	Port          int    `env:"PORT,default=1024"`
 	RedisHost     string `env:"REDIS_HOST,required"`
 	RedisPassword string `env:"REDIS_PASSWORD,required"`
