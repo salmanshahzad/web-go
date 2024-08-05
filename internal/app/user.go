@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -78,7 +77,6 @@ func (app *Application) handleCreateUser(w http.ResponseWriter, r *http.Request)
 	}
 
 	app.sm.Put(r.Context(), "userId", userId)
-	log.Println("Created user", payload.Username)
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -168,6 +166,5 @@ func (app *Application) handleDeleteUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Println("Deleted user", user.Username)
 	w.WriteHeader(http.StatusNoContent)
 }

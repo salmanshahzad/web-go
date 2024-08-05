@@ -1,15 +1,12 @@
 package utils
 
 import (
-	"log"
 	"net/http"
-	"runtime/debug"
 
 	"github.com/go-chi/render"
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Println("Internal Server Error:", err, r, string(debug.Stack()))
 	w.WriteHeader(http.StatusInternalServerError)
 }
 

@@ -4,10 +4,55 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"net/http"
+	"runtime/debug"
+	"time"
 
 	"github.com/salmanshahzad/web-go/internal/utils"
 )
+
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *responseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (app *Application) httpLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rw := responseWriter{ResponseWriter: w}
+
+		defer func() {
+			if err := recover(); err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
+
+			req := slog.Group("request",
+				"ip", r.RemoteAddr,
+				"method", r.Method,
+				"path", r.URL.Path,
+			)
+			res := slog.Group("response",
+				"latency", time.Now().Sub(start).String(),
+				"status", rw.statusCode,
+			)
+			logger := slog.Default().With(req, res)
+
+			if rw.statusCode >= http.StatusInternalServerError {
+				logger.Error("HTTP", "stack", string(debug.Stack()))
+			} else {
+				logger.Info("HTTP")
+			}
+		}()
+
+		next.ServeHTTP(&rw, r)
+	})
+}
 
 func (app *Application) verifyAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -48,8 +48,7 @@ func NewApplication(
 	apiRouter.Mount("/session", app.newSessionRouter())
 	apiRouter.Mount("/user", app.newUserRouter())
 
-	app.router.Use(middleware.Logger)
-	app.router.Use(middleware.Recoverer)
+	app.router.Use(app.httpLogger)
 	app.router.Use(cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedOrigins:   cfg.CorsOrigins,
