@@ -18,17 +18,17 @@ import (
 
 type Application struct {
 	db     database.Querier
-	env    *utils.Environment
+	cfg    *utils.Config
 	public *fs.FS
 	rdb    *redis.Client
 	router *chi.Mux
 	sm     *scs.SessionManager
 }
 
-func NewApplication(db database.Querier, env *utils.Environment, public *fs.FS, rdb *redis.Client, sm *scs.SessionManager) *Application {
+func NewApplication(db database.Querier, cfg *utils.Config, public *fs.FS, rdb *redis.Client, sm *scs.SessionManager) *Application {
 	app := Application{
 		db:     db,
-		env:    env,
+		cfg:    cfg,
 		public: public,
 		rdb:    rdb,
 		router: chi.NewRouter(),
@@ -45,7 +45,7 @@ func NewApplication(db database.Querier, env *utils.Environment, public *fs.FS, 
 	app.router.Use(middleware.Recoverer)
 	app.router.Use(cors.New(cors.Options{
 		AllowCredentials: true,
-		AllowedOrigins:   strings.Split(env.CorsOrigins, ","),
+		AllowedOrigins:   strings.Split(cfg.CorsOrigins, ","),
 	}).Handler)
 	app.router.Use(middleware.GetHead)
 	app.router.Use(sm.LoadAndSave)

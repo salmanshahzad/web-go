@@ -7,20 +7,20 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
-type Environment struct {
+type Config struct {
 	CorsOrigins string `env:"CORS_ORIGINS,default=*"`
 	DatabaseUrl string `env:"DATABASE_URL,required"`
 	Port        int    `env:"PORT,default=1024"`
 	RedisUrl    string `env:"REDIS_URL,required"`
 }
 
-func InitEnv() (*Environment, error) {
+func LoadConfig() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
 		return nil, err
 	}
 
 	ctx := context.Background()
-	env := new(Environment)
+	env := new(Config)
 	if err := envconfig.Process(ctx, env); err != nil {
 		return nil, err
 	}

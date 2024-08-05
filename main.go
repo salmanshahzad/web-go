@@ -34,36 +34,36 @@ var migrations embed.FS
 var public embed.FS
 
 func main() {
-	env := loadEnvVars()
-	db := connectToPostgres(env)
-	rdb := connectToRedis(env)
+	cfg := loadConfig()
+	db := connectToPostgres(cfg)
+	rdb := connectToRedis(cfg)
 	pub := getPublicFs()
 
 	sm := scs.New()
 	sm.Lifetime = 7 * 24 * time.Hour
 	sm.Store = goredisstore.New(rdb)
 
-	app := app.NewApplication(db, env, pub, rdb, sm)
+	app := app.NewApplication(db, cfg, pub, rdb, sm)
 	setupGracefulShutdown(app)
 
-	log.Printf("Server starting on port %d", env.Port)
-	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(env.Port))
+	log.Printf("Server starting on port %d", cfg.Port)
+	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(cfg.Port))
 	if err := http.ListenAndServe(addr, app); err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
 }
 
-func loadEnvVars() *utils.Environment {
-	env, err := utils.InitEnv()
+func loadConfig() *utils.Config {
+	cfg, err := utils.LoadConfig()
 	if err != nil {
-		log.Fatalln("Could not load environment variables:", err)
+		log.Fatalln("Could not load config:", err)
 	}
-	log.Println("Loaded environment variables")
-	return env
+	log.Println("Loaded config")
+	return cfg
 }
 
-func connectToPostgres(env *utils.Environment) database.Querier {
-	conn, err := pgx.Connect(context.Background(), env.DatabaseUrl)
+func connectToPostgres(cfg *utils.Config) database.Querier {
+	conn, err := pgx.Connect(context.Background(), cfg.DatabaseUrl)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)
 	}
@@ -83,8 +83,8 @@ func connectToPostgres(env *utils.Environment) database.Querier {
 	return database.New(conn)
 }
 
-func connectToRedis(env *utils.Environment) *redis.Client {
-	opts, err := redis.ParseURL(env.RedisUrl)
+func connectToRedis(cfg *utils.Config) *redis.Client {
+	opts, err := redis.ParseURL(cfg.RedisUrl)
 	if err != nil {
 		log.Fatalln("Error parsing Redis URL:", err)
 	}
