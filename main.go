@@ -4,13 +4,13 @@ import (
 	"context"
 	"embed"
 	"errors"
-	"fmt"
 	"io/fs"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/alexedwards/scs/goredisstore"
@@ -35,7 +35,8 @@ var public embed.FS
 func main() {
 	ctx := context.Background()
 	cfg := loadConfig(ctx)
-	db := connectToPostgres(ctx, cfg)
+	dbConn := connectToPostgres(ctx, cfg)
+	db := database.New(dbConn)
 	rdb := connectToRedis(ctx, cfg)
 	pub := getPublicFs()
 
@@ -44,13 +45,26 @@ func main() {
 	sm.Store = goredisstore.New(rdb)
 
 	app := app.NewApplication(db, cfg, pub, rdb, sm)
-	setupGracefulShutdown(app)
+	go func() {
+		log.Printf("Server starting on port %d", cfg.Port)
+		addr := net.JoinHostPort(net.IPv4zero.String(), strconv.Itoa(cfg.Port))
+		if err := http.ListenAndServe(addr, app); err != nil {
+			log.Fatalln("Error starting server:", err)
+		}
+	}()
 
-	log.Printf("Server starting on port %d", cfg.Port)
-	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(cfg.Port))
-	if err := http.ListenAndServe(addr, app); err != nil {
-		log.Fatalln("Error starting server:", err)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	log.Println("Shutting down server")
+	if err := dbConn.Close(ctx); err != nil {
+		log.Println("Error closing database connection:", err)
 	}
+	if err := rdb.Close(); err != nil {
+		log.Println("Error closing Redis connection:", err)
+	}
+	log.Println("Shutdown complete")
+	os.Exit(0)
 }
 
 func loadConfig(ctx context.Context) *utils.Config {
@@ -62,7 +76,7 @@ func loadConfig(ctx context.Context) *utils.Config {
 	return cfg
 }
 
-func connectToPostgres(ctx context.Context, cfg *utils.Config) database.Querier {
+func connectToPostgres(ctx context.Context, cfg *utils.Config) *pgx.Conn {
 	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
 	if err != nil {
 		log.Fatalln("Error connecting to database:", err)
@@ -80,7 +94,7 @@ func connectToPostgres(ctx context.Context, cfg *utils.Config) database.Querier 
 	}
 	log.Println("Completed database migrations")
 
-	return database.New(conn)
+	return conn
 }
 
 func connectToRedis(ctx context.Context, cfg *utils.Config) *redis.Client {
@@ -103,16 +117,4 @@ func getPublicFs() *fs.FS {
 		log.Fatalln("Could not find public directory:", err)
 	}
 	return &pub
-}
-
-func setupGracefulShutdown(app *app.Application) {
-	sigs := make(chan os.Signal)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigs
-		log.Println("Shutting down server")
-		app.GracefulShutdown()
-		os.Exit(0)
-	}()
 }

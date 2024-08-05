@@ -2,7 +2,6 @@ package app
 
 import (
 	"io/fs"
-	"log"
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
@@ -58,9 +57,4 @@ func NewApplication(db database.Querier, cfg *utils.Config, public *fs.FS, rdb *
 
 func (app *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	app.router.ServeHTTP(w, r)
-}
-
-func (app *Application) GracefulShutdown() {
-	app.rdb.Close()
-	log.Println("Disconnected from Redis")
 }
