@@ -2,8 +2,8 @@ package app
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/cohesivestack/valgo"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 
@@ -43,10 +43,12 @@ func (app *Application) handleCreateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	payload.Username = strings.TrimSpace(payload.Username)
-	payload.Password = strings.TrimSpace(payload.Password)
-	if len(payload.Username) == 0 || len(payload.Password) == 0 {
-		utils.UnprocessableEntity(w, r, "Username and password are required")
+	val := valgo.Is(
+		valgo.String(payload.Username, "username").Not().Blank(),
+		valgo.String(payload.Password, "password").Not().Empty(),
+	)
+	if !val.Valid() {
+		utils.ValidationError(w, r, val)
 		return
 	}
 
@@ -90,9 +92,11 @@ func (app *Application) handleEditUsername(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	payload.Username = strings.TrimSpace(payload.Username)
-	if len(payload.Username) == 0 {
-		utils.UnprocessableEntity(w, r, "Username is required")
+	val := valgo.Is(
+		valgo.String(payload.Username, "username").Not().Blank(),
+	)
+	if !val.Valid() {
+		utils.ValidationError(w, r, val)
 		return
 	}
 
@@ -129,9 +133,11 @@ func (app *Application) handleEditPassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	payload.Password = strings.TrimSpace(payload.Password)
-	if len(payload.Password) == 0 {
-		utils.UnprocessableEntity(w, r, "Password is required")
+	val := valgo.Is(
+		valgo.String(payload.Password, "password").Not().Empty(),
+	)
+	if !val.Valid() {
+		utils.ValidationError(w, r, val)
 		return
 	}
 

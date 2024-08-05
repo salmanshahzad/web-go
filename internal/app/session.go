@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strings"
 
+	"github.com/cohesivestack/valgo"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 
@@ -30,10 +30,12 @@ func (app *Application) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload.Username = strings.TrimSpace(payload.Username)
-	payload.Password = strings.TrimSpace(payload.Password)
-	if len(payload.Username) == 0 || len(payload.Password) == 0 {
-		utils.UnprocessableEntity(w, r, "Username and password are required")
+	val := valgo.Is(
+		valgo.String(payload.Username, "username").Not().Blank(),
+		valgo.String(payload.Password, "password").Not().Empty(),
+	)
+	if !val.Valid() {
+		utils.ValidationError(w, r, val)
 		return
 	}
 
