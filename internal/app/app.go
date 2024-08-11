@@ -3,6 +3,9 @@ package app
 import (
 	"io/fs"
 	"net/http"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
@@ -57,8 +60,18 @@ func NewApplication(
 	app.router.Use(sm.LoadAndSave)
 	app.router.Mount("/api", apiRouter)
 
-	publicFs := http.FileServer(http.FS(public))
-	app.router.Get("/*", publicFs.ServeHTTP)
+	publicFS := http.FileServer(http.FS(public))
+	app.router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		path := path.Clean(r.URL.Path)
+		path = strings.TrimPrefix(path, "/")
+		file, err := public.Open(path)
+		if err == nil {
+			file.Close()
+		} else if os.IsNotExist(err) {
+			r.URL.Path = "/"
+		}
+		publicFS.ServeHTTP(w, r)
+	})
 
 	return &app
 }

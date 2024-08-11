@@ -1,0 +1,38 @@
+{
+    "name": "web-go",
+    "private": true,
+    "type": "module",
+    "browser": "dist/index.html",
+    "scripts": {
+        "prebuild": "tsc",
+        "build": "vite build",
+        "check": "biome check --write **/*",
+        "dev": "vite"
+    },
+    "author": "Salman Shahzad (https://www.salmanshahzad.com)",
+    "homepage": "https://github.com/salmanshahzad/web-go",
+    "repository": "github:salmanshahzad/web-go",
+    "license": "UNLICENSED",
+    "dependencies": {
+        "@tanstack/react-query": "^5.51.23",
+        "@tanstack/react-router": "^1.47.1",
+        "axios": "^1.7.3",
+        "classnames": "^2.5.1",
+        "daisyui": "^4.12.10",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-hook-form": "^7.52.2",
+        "tailwindcss": "^3.4.9"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^1.8.3",
+        "@tsconfig/strictest": "^2.0.5",
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.1",
+        "autoprefixer": "^10.4.20",
+        "postcss": "^8.4.41",
+        "typescript": "^5.5.4",
+        "vite": "^5.4.0"
+    }
+}

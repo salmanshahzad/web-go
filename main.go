@@ -25,11 +25,12 @@ import (
 	"github.com/salmanshahzad/web-go/internal/utils"
 )
 
-//go:embed internal/database/migrations
-var migrations embed.FS
-
-//go:embed public
-var public embed.FS
+var (
+	//go:embed internal/database/migrations
+	migrations embed.FS
+	//go:embed public/dist
+	public embed.FS
+)
 
 func main() {
 	ctx := context.Background()
@@ -59,7 +60,7 @@ func main() {
 	slog.Info("connected to Redis")
 	sessStore := goredisstore.New(rdb)
 
-	pub, err := fs.Sub(public, "public")
+	pub, err := fs.Sub(public, "public/dist")
 	if err != nil {
 		slog.Error("could not get public directory", "err", err)
 		os.Exit(1)
