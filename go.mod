@@ -15,6 +15,7 @@ require (
 	github.com/cohesivestack/valgo v0.4.1
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/render v1.0.3
+	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/rs/cors v1.11.0
 	github.com/sethvargo/go-envconfig v1.1.0

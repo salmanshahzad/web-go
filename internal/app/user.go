@@ -1,11 +1,14 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/cohesivestack/valgo"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/salmanshahzad/web-go/internal/database"
 	"github.com/salmanshahzad/web-go/internal/utils"
@@ -52,16 +55,6 @@ func (app *Application) handleCreateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userCount, err := app.db.CountUsersWithUsername(r.Context(), payload.Username)
-	if err != nil {
-		utils.InternalServerError(w, r, err)
-		return
-	}
-	if userCount > 0 {
-		utils.UnprocessableEntity(w, r, "Username already exists")
-		return
-	}
-
 	hashedPassword, err := utils.HashPassword(payload.Password)
 	if err != nil {
 		utils.InternalServerError(w, r, err)
@@ -74,6 +67,13 @@ func (app *Application) handleCreateUser(w http.ResponseWriter, r *http.Request)
 	}
 	userId, err := app.db.CreateUser(r.Context(), user)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				utils.UnprocessableEntity(w, r, "Username already exists")
+				return
+			}
+		}
 		utils.InternalServerError(w, r, err)
 		return
 	}
@@ -100,22 +100,19 @@ func (app *Application) handleEditUsername(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userCount, err := app.db.CountUsersWithUsername(r.Context(), payload.Username)
-	if err != nil {
-		utils.InternalServerError(w, r, err)
-		return
-	}
-	if userCount > 0 {
-		utils.UnprocessableEntity(w, r, "Username already exists")
-		return
-	}
-
 	user := r.Context().Value("user").(database.User)
 	params := database.UpdateUsernameParams{
 		ID:       user.ID,
 		Username: payload.Username,
 	}
 	if err := app.db.UpdateUsername(r.Context(), params); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				utils.UnprocessableEntity(w, r, "Username already exists")
+				return
+			}
+		}
 		utils.InternalServerError(w, r, err)
 		return
 	}

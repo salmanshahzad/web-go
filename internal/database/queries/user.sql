@@ -1,6 +1,3 @@
--- name: CountUsersWithUsername :one
-SELECT COUNT(*) FROM "user" WHERE username = $1;
-
 -- name: CreateUser :one
 INSERT INTO "user" (username, password) VALUES ($1, $2) RETURNING id;
 
